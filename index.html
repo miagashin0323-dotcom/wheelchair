@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>輪椅少女：極速鬼抓人 (Wheelchair Tag)</title>
+  <meta name="description" content="操控齊瀏海長髮、帥氣抽菸的輪椅少女，在限時2分鐘內挑戰極速鬼抓人！自訂街頭代號暱稱，爭奪全服榮譽排行榜！">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Main Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top HUD Overlay -->
+    <header id="hud" class="hud-layer hidden">
+      <div class="hud-left">
+        <!-- Player Nickname Badge (Click to edit anytime) -->
+        <div id="hud-player-badge" class="hud-card player-badge-card" title="點擊快速修改暱稱">
+          <span class="hud-label">PLAYER 暱稱 [可改]</span>
+          <div class="player-badge-wrap">
+            <span id="hud-player-name" class="hud-val glow-cyan player-name-val">輪椅少女玩家</span>
+            <span class="edit-icon">✏️</span>
+          </div>
+        </div>
+
+        <div class="hud-card score-card">
+          <span class="hud-label">得分 SCORE</span>
+          <span id="score-display" class="hud-val glow-cyan">0</span>
+        </div>
+        <div class="hud-card combo-card">
+          <span class="hud-label">連擊 COMBO</span>
+          <div class="combo-wrap">
+            <span id="combo-display" class="hud-val glow-yellow">x1.0</span>
+            <div id="combo-bar-bg" class="progress-bar-bg">
+              <div id="combo-bar-fill" class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div class="hud-card timer-card">
+          <span class="hud-label">剩餘時間 TIME</span>
+          <span id="timer-display" class="hud-val timer-val">02:00</span>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <div class="hud-card dash-card">
+          <span class="hud-label">輪椅衝刺 [SPACE]</span>
+          <div class="dash-wrap">
+            <div id="dash-bar-bg" class="progress-bar-bg">
+              <div id="dash-bar-fill" class="progress-bar-fill dash-ready"></div>
+            </div>
+            <span id="dash-status" class="dash-status-text">READY</span>
+          </div>
+        </div>
+        <div class="hud-controls">
+          <button id="btn-open-leaderboard-hud" class="hud-btn" title="查看排行榜" aria-label="排行榜">
+            <span>🏆</span>
+          </button>
+          <button id="btn-audio" class="hud-btn" title="切換音效與音樂" aria-label="切換音效">
+            <span id="audio-icon">🔊</span>
+          </button>
+          <button id="btn-pause" class="hud-btn" title="暫停遊戲" aria-label="暫停">
+            <span>⏸️</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Minimap Radar -->
+    <div id="minimap-container" class="hud-layer hidden">
+      <div class="minimap-header">
+        <span>RADAR 偵測雷達</span>
+      </div>
+      <canvas id="minimap-canvas" width="140" height="140"></canvas>
+      <div class="minimap-legend">
+        <span class="dot-legend dot-player">● 少女</span>
+        <span class="dot-legend dot-elder">● 老人</span>
+        <span class="dot-legend dot-xiaohei">★ 小黑</span>
+      </div>
+    </div>
+
+    <!-- On-screen Floating Notifications -->
+    <div id="floating-notice" class="floating-notice"></div>
+
+    <!-- Mobile Virtual Controls -->
+    <div id="touch-controls" class="touch-layer hidden">
+      <div id="virtual-joystick-zone" class="joystick-zone">
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-thumb" class="joystick-thumb"></div>
+        </div>
+      </div>
+      <div class="action-buttons-zone">
+        <button id="btn-touch-dash" class="touch-btn dash-btn">
+          <span>🚀</span>
+          <small>衝刺 DASH</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Start / Title Screen Modal -->
+    <div id="modal-start" class="modal-backdrop">
+      <div class="modal-card start-card">
+        <div class="banner-wrapper">
+          <img src="assets/cover.jpg" alt="齊瀏海長髮輪椅少女極速鬼抓人" class="cover-image" />
+          <div class="banner-overlay">
+            <span class="badge-tag">CYBER DRIFT ARCADE</span>
+            <h1 class="game-title">輪椅少女：極速鬼抓人</h1>
+            <p class="game-subtitle">2分鐘街頭狂飆・齊瀏海黑長髮少女的抓人傳奇！</p>
+          </div>
+        </div>
+
+        <div class="start-content">
+          <!-- Player Nickname Setup Box -->
+          <div class="nickname-setup-panel">
+            <div class="nickname-panel-header">
+              <span class="panel-icon">👤</span>
+              <label for="player-nickname-input" class="panel-title">設定玩家暱稱（遊戲中可隨時更改）</label>
+            </div>
+            <div class="nickname-input-group">
+              <input type="text" id="player-nickname-input" class="stylish-input" maxlength="12" placeholder="請輸入您的街頭代號（如：疾風少女）" value="輪椅少女玩家">
+              <button id="btn-save-nickname-start" class="btn-input-save">保存</button>
+            </div>
+            <small class="nickname-tip">遊戲結束後的得分將以此名稱計算並登錄至街頭排行榜！</small>
+          </div>
+
+          <!-- Game Objective Briefing -->
+          <div class="briefing-grid">
+            <div class="briefing-box">
+              <div class="brief-icon">⏱️</div>
+              <div class="brief-info">
+                <h4>2分鐘極限挑戰</h4>
+                <p>時間內抓到越多人分數越高，爭奪 SSS 級街頭傳奇！</p>
+              </div>
+            </div>
+            <div class="briefing-box">
+              <div class="brief-icon">🚬</div>
+              <div class="brief-info">
+                <h4>齊瀏海長髮主角</h4>
+                <p>黑長髮、整齊瀏海、叼著燃燒香菸，操控高科技輪椅狂飆甩尾！</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- NPC Target Guide -->
+          <div class="npc-guide-section">
+            <h3 class="section-title">🎯 目標行人與計分規則</h3>
+            <div class="npc-cards-grid">
+              <div class="npc-spec-card">
+                <div class="npc-avatar-badge child-badge">👶</div>
+                <div class="npc-spec-name">活潑小孩</div>
+                <div class="npc-spec-score glow-green">+1 分</div>
+                <p class="npc-spec-desc">敏捷靈巧、轉向靈活，抓取容易但逃跑速度快！</p>
+              </div>
+              <div class="npc-spec-card">
+                <div class="npc-avatar-badge adult-badge">🚶</div>
+                <div class="npc-spec-name">普通成年人</div>
+                <div class="npc-spec-score glow-cyan">+2 分</div>
+                <p class="npc-spec-desc">街頭常客，中等步速，看到輪椅衝來會慌忙逃竄。</p>
+              </div>
+              <div class="npc-spec-card danger-card">
+                <div class="npc-avatar-badge elder-badge">👴</div>
+                <div class="npc-spec-name">硬朗老人</div>
+                <div class="npc-spec-score glow-gold">+20 分！</div>
+                <p class="npc-spec-desc"><strong>走得慢但反擊極快！</strong> 0.18秒神速揮杖，需巧妙繞背抓捕！</p>
+              </div>
+              <div class="npc-spec-card special-card">
+                <div class="npc-avatar-img-wrap">
+                  <img src="assets/xiao_hei.jpg" alt="小黑" class="npc-avatar-thumb">
+                </div>
+                <div class="npc-spec-name">
+                  <span class="name-tag-preview">小黑</span>
+                </div>
+                <div class="npc-spec-score glow-purple">深情告白 NPC</div>
+                <p class="npc-spec-desc">26歲黑髮瀏海潮男！慢速吐露心意，被追上可選放走(+50)或逮捕(+30)！</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Operation Guide -->
+          <div class="controls-guide">
+            <div class="control-key-item">
+              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或 <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>
+              <span>控制輪椅前後移動與轉向</span>
+            </div>
+            <div class="control-key-item">
+              <kbd>空白鍵 SPACE</kbd> 或 <kbd>SHIFT</kbd>
+              <span>輪椅氮氣噴射衝刺 (冷卻 3 秒)</span>
+            </div>
+            <div class="control-key-item">
+              <span class="mouse-icon">🖱️ 滑鼠 / 觸控</span>
+              <span>支援點擊跟隨與手機虛擬搖桿操作</span>
+            </div>
+          </div>
+
+          <div class="modal-actions start-actions-row">
+            <button id="btn-start-game" class="btn-primary start-btn">
+              <span class="btn-shine"></span>
+              <span class="btn-text">🔥 啟動輪椅！開始挑戰 (2:00)</span>
+            </button>
+            <button id="btn-show-leaderboard-start" class="btn-secondary leaderboard-entry-btn">
+              <span>🏆 查看街頭排行榜</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Xiao Hei Confession Choice Modal -->
+    <div id="modal-confession" class="modal-backdrop hidden">
+      <div class="modal-card confession-card">
+        <div class="confession-header">
+          <div class="confession-avatar-wrap">
+            <img src="assets/xiao_hei.jpg" alt="小黑深情告白" class="confession-avatar-img">
+            <div class="confession-badge">❤️ 告白中</div>
+          </div>
+          <div class="confession-title-wrap">
+            <span class="confession-tag">★ 小黑（26歲・黑髮瀏海・黝黑潮男）</span>
+            <h2 id="confession-title" class="confession-title">「被妳追上了……！但我真的好喜歡妳！」</h2>
+          </div>
+        </div>
+
+        <div class="confession-speech-box">
+          <p id="speech-quote" class="speech-quote">
+            「妳抽菸甩尾的英姿深深震撼了我……就算坐著輪椅，妳也是全街頭最耀眼的少女！<br>
+            這顆心早就被妳俘虜了……如果妳願意放我一馬，我會永遠注視著妳狂飆的身影！」
+          </p>
+        </div>
+
+        <div class="confession-prompt">
+          <span id="confession-prompt-text">輪椅少女吐了一口輕煙，面對眼前真誠告白的小黑，妳的決定是……？</span>
+        </div>
+
+        <div class="confession-choices-grid">
+          <button id="btn-choice-spare" class="choice-btn spare-btn">
+            <div class="choice-icon">💖</div>
+            <div class="choice-text">
+              <strong>【1】心軟放走他</strong>
+              <small>獲得 +50 分 +「愛之極速祝福」加速 8 秒 + 重置衝刺！</small>
+            </div>
+            <kbd class="key-hint">按 1</kbd>
+          </button>
+
+          <button id="btn-choice-capture" class="choice-btn capture-btn">
+            <div class="choice-icon">⚡</div>
+            <div class="choice-text">
+              <strong>【2】無情逮捕！</strong>
+              <small>按比賽規則獲得 +30 分 + 連擊倍率累積 + 重置衝刺！</small>
+            </div>
+            <kbd class="key-hint">按 2</kbd>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause Modal -->
+    <div id="modal-pause" class="modal-backdrop hidden">
+      <div class="modal-card pause-card">
+        <h2>遊戲暫停 PAUSED</h2>
+        <p>齊瀏海長髮少女正在靜靜抽菸...</p>
+
+        <!-- Inline Nickname Modifier during pause -->
+        <div class="pause-nickname-panel">
+          <label for="pause-nickname-input">👤 隨時修改玩家暱稱：</label>
+          <div class="nickname-input-group">
+            <input type="text" id="pause-nickname-input" class="stylish-input" maxlength="12" placeholder="修改暱稱...">
+            <button id="btn-save-nickname-pause" class="btn-input-save">更新</button>
+          </div>
+        </div>
+
+        <div class="pause-actions">
+          <button id="btn-resume" class="btn-primary">繼續遊戲 RESUME</button>
+          <button id="btn-show-leaderboard-pause" class="btn-secondary">🏆 查看排行榜</button>
+          <button id="btn-restart-pause" class="btn-secondary">重新開始 RESTART</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over / Results Modal -->
+    <div id="modal-gameover" class="modal-backdrop hidden">
+      <div class="modal-card result-card">
+        <div class="result-header">
+          <div class="rank-stamp-wrap">
+            <div id="result-rank-badge" class="rank-stamp">S</div>
+          </div>
+          <h2 class="result-title">TIME'S UP! 時間結束</h2>
+          <p id="result-subtitle" class="result-subtitle">街頭抓人傳奇誕生！</p>
+        </div>
+
+        <!-- Player Identification Banner -->
+        <div class="result-player-badge">
+          <span class="player-icon">👤</span>
+          <span class="player-title">參賽選手：</span>
+          <span id="result-player-name" class="player-name-text glow-cyan">輪椅少女玩家</span>
+          <span id="rank-status-tag" class="rank-status-tag">登榜成功！</span>
+        </div>
+
+        <div class="result-main-score">
+          <span class="score-label">最終總分 FINAL SCORE</span>
+          <span id="final-score" class="score-number glow-cyan">0</span>
+          <span id="high-score-record" class="high-score-text">歷史最高：0</span>
+        </div>
+
+        <!-- Detailed Statistics Breakdown -->
+        <div class="result-breakdown">
+          <h3>📊 戰績統計明細</h3>
+          <div class="breakdown-grid">
+            <div class="breakdown-item">
+              <span class="item-icon">👶</span>
+              <span class="item-name">小孩 (+1)</span>
+              <span id="stat-kids" class="item-count">0 人</span>
+              <span id="stat-kids-pts" class="item-pts">+0 分</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="item-icon">🚶</span>
+              <span class="item-name">成年人 (+2)</span>
+              <span id="stat-adults" class="item-count">0 人</span>
+              <span id="stat-adults-pts" class="item-pts">+0 分</span>
+            </div>
+            <div class="breakdown-item highlight-elder">
+              <span class="item-icon">👴</span>
+              <span class="item-name">老人 (+20)</span>
+              <span id="stat-elders" class="item-count">0 人</span>
+              <span id="stat-elders-pts" class="item-pts">+0 分</span>
+            </div>
+            <div class="breakdown-item highlight-love">
+              <span class="item-icon">💖</span>
+              <span class="item-name">放走小黑 (+50)</span>
+              <span id="stat-xiaohei-spared" class="item-count">0 次</span>
+              <span id="stat-xiaohei-spared-pts" class="item-pts">+0 分</span>
+            </div>
+            <div class="breakdown-item highlight-xiaohei">
+              <span class="item-icon">⚡</span>
+              <span class="item-name">無情逮捕小黑 (+30)</span>
+              <span id="stat-xiaohei-captured" class="item-count">0 次</span>
+              <span id="stat-xiaohei-captured-pts" class="item-pts">+0 分</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="item-icon">🔥</span>
+              <span class="item-name">最高連擊</span>
+              <span id="stat-max-combo" class="item-count">x1.0</span>
+              <span class="item-pts">Combo Boost</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions result-actions-row">
+          <button id="btn-play-again" class="btn-primary start-btn">
+            <span class="btn-shine"></span>
+            <span class="btn-text">🔄 再次挑戰 PLAY AGAIN</span>
+          </button>
+          <button id="btn-show-leaderboard-gameover" class="btn-secondary leaderboard-entry-btn">
+            <span>🏆 查看街頭排行榜</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="modal-leaderboard" class="modal-backdrop hidden">
+      <div class="modal-card leaderboard-card">
+        <div class="leaderboard-header">
+          <div class="leaderboard-trophy-icon">🏆</div>
+          <h2 class="leaderboard-title">街頭狂飆・名譽排行榜</h2>
+          <p class="leaderboard-subtitle">紀錄前 10 名極速傳奇！爭奪街頭最強巔峰！</p>
+        </div>
+
+        <!-- Quick Nickname Edit on Leaderboard -->
+        <div class="leaderboard-nickname-bar">
+          <span>目前玩家：<strong id="leaderboard-current-player" class="glow-cyan">輪椅少女玩家</strong></span>
+          <button id="btn-edit-nickname-leaderboard" class="btn-small-link">修改暱稱 ✏️</button>
+        </div>
+
+        <div class="leaderboard-table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width: 15%">名次</th>
+                <th style="width: 35%">玩家暱稱</th>
+                <th style="width: 20%">得分</th>
+                <th style="width: 15%">評級</th>
+                <th style="width: 15%">日期</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="leaderboard-actions">
+          <button id="btn-close-leaderboard" class="btn-primary">返回 RETURN</button>
+          <button id="btn-reset-leaderboard" class="btn-secondary danger-action" title="將排行榜恢復為預設名冊">重設榜單</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Nickname Prompt Dialog Modal -->
+    <div id="modal-nickname-prompt" class="modal-backdrop hidden">
+      <div class="modal-card nickname-prompt-card">
+        <h3>✏️ 修改玩家暱稱</h3>
+        <p>請輸入您在街頭排行榜上顯示的代號：</p>
+        <div class="nickname-input-group">
+          <input type="text" id="quick-nickname-input" class="stylish-input" maxlength="12" placeholder="輸入新暱稱...">
+        </div>
+        <div class="prompt-actions">
+          <button id="btn-confirm-quick-nickname" class="btn-primary">確定保存</button>
+          <button id="btn-cancel-quick-nickname" class="btn-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
