@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>輪椅少女：極速鬼抓人 (Wheelchair Tag)</title>
   <meta name="description" content="操控齊瀏海長髮、帥氣抽菸的輪椅少女，在限時2分鐘內挑戰極速鬼抓人！自訂街頭代號暱稱，爭奪全服榮譽排行榜！">
-  
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+    rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="game-container">
     <!-- Main Game Canvas -->
@@ -111,7 +115,7 @@
     <div id="modal-start" class="modal-backdrop">
       <div class="modal-card start-card">
         <div class="banner-wrapper">
-          <img src="assets/cover.jpg" alt="齊瀏海長髮輪椅少女極速鬼抓人" class="cover-image" />
+          <img src="cover.jpg" alt="齊瀏海長髮輪椅少女極速鬼抓人" class="cover-image" />
           <div class="banner-overlay">
             <span class="badge-tag">CYBER DRIFT ARCADE</span>
             <h1 class="game-title">輪椅少女：極速鬼抓人</h1>
@@ -127,7 +131,8 @@
               <label for="player-nickname-input" class="panel-title">設定玩家暱稱（遊戲中可隨時更改）</label>
             </div>
             <div class="nickname-input-group">
-              <input type="text" id="player-nickname-input" class="stylish-input" maxlength="12" placeholder="請輸入您的街頭代號（如：疾風少女）" value="輪椅少女玩家">
+              <input type="text" id="player-nickname-input" class="stylish-input" maxlength="12"
+                placeholder="請輸入您的街頭代號（如：疾風少女）" value="輪椅少女玩家">
               <button id="btn-save-nickname-start" class="btn-input-save">保存</button>
             </div>
             <small class="nickname-tip">遊戲結束後的得分將以此名稱計算並登錄至街頭排行榜！</small>
@@ -175,7 +180,7 @@
               </div>
               <div class="npc-spec-card special-card">
                 <div class="npc-avatar-img-wrap">
-                  <img src="assets/xiao_hei.jpg" alt="小黑" class="npc-avatar-thumb">
+                  <img src="xiao_hei.jpg" alt="小黑" class="npc-avatar-thumb">
                 </div>
                 <div class="npc-spec-name">
                   <span class="name-tag-preview">小黑</span>
@@ -423,4 +428,5 @@
 
   <script src="game.js"></script>
 </body>
+
 </html>
